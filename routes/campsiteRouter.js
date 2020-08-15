@@ -77,6 +77,7 @@ campsiteRouter.route('/:campsiteId')
         .catch(err=>next(err)); 
     })
 
+    //configuring response to requests whose url contains :campsiteId/comments
     campsiteRouter.route('/:campsiteId/comments')
     .get((req, res, next) => {
         Campsite.findById(req.params.campsiteId)
@@ -98,8 +99,8 @@ campsiteRouter.route('/:campsiteId')
         Campsite.findById(req.params.campsiteId)
         .then(campsite => {
             if(campsite){
-            campsite.comments.push(req.body);
-            campsite.save()
+            campsite.comments.push(req.body);//If a campsite document with the Id exists, the comments are pushed to the comments field
+            campsite.save()//saving the changes after manipulating the document
             .then(campsite => {
                 res.statusCode=200;
                 res.setHeader('Content-Type','application/json');
@@ -107,6 +108,7 @@ campsiteRouter.route('/:campsiteId')
             })
             .catch(err=>next(err)); 
             }else{
+                //error if the campsite with the id not found
                 err = new Error(`Campsite ${req.params.campsiteId} does not exist`);
                 err.status=403;
                 return next(err);
@@ -122,6 +124,7 @@ campsiteRouter.route('/:campsiteId')
         Campsite.findById(req.params.campsiteId)
         .then(campsite => {
             if(campsite){
+            //if the campsite document with the id exists, than deleting each comment in the comments field
             for(let i=campsite.comments.length-1;i>=0;i--){
                 campsite.comments.id(campsite.comments[i]._id).remove();
             }
@@ -141,15 +144,18 @@ campsiteRouter.route('/:campsiteId')
         .catch(err=>next(err));  
     });
 
+    //configuring response to requests whose url contains :campsiteId/comments/:commentsId
     campsiteRouter.route('/:campsiteId/comments/:commentsId')
     .get((req, res, next) => {
         Campsite.findById(req.params.campsiteId)
         .then(campsite => {
+            //If the campsite with the Id contains a comment with the Id we are sending it in the response
             if(campsite && campsite.comments.id(req.params.commentsId)){
             res.statusCode=200;
             res.setHeader('Content-Type','application/json');
             res.json(campsite.comments.id(req.params.commentsId));
             }
+            //returing error if either of it does not exist
             else if(!campsite){
                 err = new Error(`Campsite ${req.params.campsiteId} does not exist`);
                 err.status=403;
@@ -171,12 +177,14 @@ campsiteRouter.route('/:campsiteId')
         Campsite.findById(req.params.campsiteId)
         .then(campsite => {
             if(campsite && campsite.comments.id(req.params.commentsId)){
+                //updating few feilds of comment with data from req.body
                 if(req.body.text){
                     campsite.comments.id(req.params.commentsId).text = req.body.text;
                 }
                 if(req.body.rating){
                     campsite.comments.id(req.params.commentsId).rating = req.body.rating;
                 }
+                //saving changes after updating
                 campsite.save()
                 .then(campsite=>{
                     res.statusCode=200;
@@ -204,6 +212,7 @@ campsiteRouter.route('/:campsiteId')
         Campsite.findById(req.params.campsiteId)
         .then(campsite => {
             if(campsite && campsite.comments.id(req.params.commentsId)){
+            //removing the comment with the commentId
             campsite.comments.id(req.params.commentsId).remove();
             campsite.save()
             .then(campsite=>{
@@ -227,4 +236,4 @@ campsiteRouter.route('/:campsiteId')
         .catch(err=>next(err));  
     });
 
-module.exports = campsiteRouter
+module.exports = campsiteRouter//exporting campsiteRouter 
