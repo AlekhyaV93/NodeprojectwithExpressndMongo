@@ -45,37 +45,19 @@ app.use(session({
   store:new FileStore()
 }))
 
+app.use('/', indexRouter);
+app.use('/users', usersRouter);
+
 function auth(req,res,next){
   //console.log(req.header);//logging request header
   console.log(req.session);
   if(!req.session.user){
-    const authHeader = req.headers.authorization;//obtaining authorization field value from request header
-  //If authorization value is null, sending a 401 error and a popup to enter credentials
-    if(!authHeader){
       const err = new Error('You are not authenticated');
-      res.setHeader('WWW-Autheticate','Basic');
       err.status=401;
       return next(err);
-    }
-
-    const auth = Buffer.from(authHeader.split(' ')[1],'base64');//using buffer inbuilt function 
-    const newAuth = auth.toString().split(':');
-    const user = newAuth[0];
-    const password = newAuth[1];
-    //verifying the credentials
-    if(user === 'admin' && password === 'password'){
-      req.session.user='admin';
-      return next();
-    }
-    else{
-      const err = new Error('You are not authenticated');
-      res.setHeader('WWW-Autheticate','Basic');
-      err.status=401;
-      return next(err);
-    }
   }
   else {
-    if(req.session.user === 'admin'){
+    if(req.session.user === 'authenticated'){
       console.log('req.session:', req.session);
       return next();
     }
@@ -87,11 +69,10 @@ function auth(req,res,next){
   }
 }
 
-app.use(auth);//using the above defined auth function, before showing static pages or redirecting to routes based on incoming path
+app.use(auth);//using the above defined auth function redirecting to below routes based on incoming path
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+
 app.use('/campsites', campsiteRouter);
 app.use('/promotions', promotionsRouter);
 app.use('/partners', partnersRouter);
