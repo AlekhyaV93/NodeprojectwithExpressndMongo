@@ -19,7 +19,7 @@ promotionsRouter.route('/')//routing based on the url
     })
     .catch(err=>next(err))//catching errors if any
  })
- .post(authenticate.verifyUser, (req, res, next) => {
+ .post(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Promotion.create(req.body)//using create method to create or insert a document in the promotions collection by sending req.body
     .then(promotions=>{
          res.statusCode=200;
@@ -32,7 +32,7 @@ promotionsRouter.route('/')//routing based on the url
      res.statusCode = 403;//setting status code to 403 which is a forbidden error
      res.end('PUT operation not supported on /partners');//sending response a string
  })
- .delete(authenticate.verifyUser, (req, res,next) => {
+ .delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res,next) => {
     Promotion.deleteMany()//deleting documents in the collection
      .then(response=>{
          res.statusCode=200;
@@ -58,7 +58,7 @@ promotionsRouter.route('/:promotionId')
     res.statusCode = 403;
     res.end(`POST operation not supported on /partners/${req.params.promotionId}`);
 })
-.put(authenticate.verifyUser, (req, res) => {
+.put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res) => {
     //finding a document from partners collection based on promotion id and setting/updating its feild to contents in req.body
     Promotion.findByIdAndUpdate(req.params.promotionId,{
         $set:req.body
@@ -73,7 +73,7 @@ promotionsRouter.route('/:promotionId')
     .catch(err=>next(err))
 
 })
-.delete(authenticate.verifyUser, (req, res,next) => {
+.delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res,next) => {
     Promotion.findByIdAndDelete(req.params.promotionId)//finding and deleting a document based on Id
     .then(response=>{
         res.statusCode=200;

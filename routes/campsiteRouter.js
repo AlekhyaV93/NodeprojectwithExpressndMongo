@@ -21,8 +21,7 @@ campsiteRouter.route('/')//routing based on the endpoint ex:here all the request
         .catch(err=>next(err));  
     })
     .post(
-        
-        authenticate.verifyUser, (req, res,next) => {
+        authenticate.verifyUser, authenticate.verifyAdmin, (req, res,next) => {
         Campsite.create(req.body)
         .then(campsites => {
             res.statusCode=200;
@@ -37,7 +36,7 @@ campsiteRouter.route('/')//routing based on the endpoint ex:here all the request
         res.statusCode = 403;
         res.end('PUT operation not supported on /campsites');
     })
-    .delete(authenticate.verifyUser, (req, res, next) => {
+    .delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
         Campsite.deleteMany()
         .then(response => {
             res.statusCode=200;
@@ -62,7 +61,7 @@ campsiteRouter.route('/:campsiteId')
         res.statusCode = 403;
         res.end(`POST operation not supported on /campsites/${req.params.campsiteId}`);
     })
-    .put(authenticate.verifyUser, (req, res, next) => {
+    .put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
         Campsite.findByIdAndUpdate(req.params.campsiteId,{
             $set:req.body
         },{
@@ -74,7 +73,7 @@ campsiteRouter.route('/:campsiteId')
         })
         .catch(err=>next(err)); 
     })
-    .delete(authenticate.verifyUser, (req, res,next) => {
+    .delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res,next) => {
         Campsite.findByIdAndDelete(req.params.campsiteId)
         .then(response => {
             res.statusCode=200;
@@ -187,21 +186,31 @@ campsiteRouter.route('/:campsiteId')
         Campsite.findById(req.params.campsiteId)
         .then(campsite => {
             if(campsite && campsite.comments.id(req.params.commentsId)){
-                //updating few feilds of comment with data from req.body
-                if(req.body.text){
-                    campsite.comments.id(req.params.commentsId).text = req.body.text;
+                const id1 = req.user._id;
+                const id2 = campsite.comments.id(req.params.commentsId).author._id;
+                //console.log(id1);
+                //console.log(id2);
+                if(id1.equals(id2)){
+                    //updating few feilds of comment with data from req.body
+                    if(req.body.text){
+                        campsite.comments.id(req.params.commentsId).text = req.body.text;
+                    }
+                    if(req.body.rating){
+                        campsite.comments.id(req.params.commentsId).rating = req.body.rating;
+                    }
+                    //saving changes after updating
+                    campsite.save()
+                    .then(campsite=>{
+                        res.statusCode=200;
+                        res.setHeader('Content-Type','application/json');
+                        res.json(campsite);
+                    })
+                    .catch(err=>next(err)); 
+                }else{
+                    err = new Error('You are not accessed to modify the comment');
+                    err.status=403;
+                    return next(err);
                 }
-                if(req.body.rating){
-                    campsite.comments.id(req.params.commentsId).rating = req.body.rating;
-                }
-                //saving changes after updating
-                campsite.save()
-                .then(campsite=>{
-                    res.statusCode=200;
-                    res.setHeader('Content-Type','application/json');
-                    res.json(campsite);
-                })
-                .catch(err=>next(err)); 
             
             }
             else if(!campsite){
@@ -218,7 +227,7 @@ campsiteRouter.route('/:campsiteId')
         .catch(err=>next(err));  
        
     })
-    .delete(authenticate.verifyUser, (req, res, next) => {
+    .delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
         Campsite.findById(req.params.campsiteId)
         .then(campsite => {
             if(campsite && campsite.comments.id(req.params.commentsId)){

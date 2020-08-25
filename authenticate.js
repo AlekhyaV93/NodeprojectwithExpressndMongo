@@ -6,6 +6,8 @@ const jwt = require('jsonwebtoken');//used to create, sign, verify Tokens
 
 const User = require('./models/user');
 const config = require('./config.js');
+const { NotExtended } = require('http-errors');
+const { response } = require('express');
 
 
 
@@ -39,4 +41,14 @@ exports.jwtPassport = passport.use(
     )
 );
 
-exports.verifyUser = passport.authenticate('jwt', {session: false});
+exports.verifyUser = passport.authenticate('jwt', {session: false});//When a user is authenticated in this function, Passport will load a user property to the req object
+exports.verifyAdmin = (req,res,next) => {
+    if(req.user.admin){
+        return next();
+    }
+    else{
+        const err = new Error("You are not authorized to perform this operation");
+        res.statusCode=403;
+        return next(err)
+    }
+}
