@@ -5,7 +5,7 @@ const router = express.Router();
 const authenticate = require('../authenticate');
 
 /* GET users listing. */
-router.get('/', authenticate.verifyUser, authenticate.verifyAdmin, function(req, res) {
+router.get('/', authenticate.verifyUser, authenticate.verifyAdmin, function(req, res, next) {//#1
   User.find()
   .then(users=>{
     res.statusCode=200;

@@ -36,7 +36,7 @@ campsiteRouter.route('/')//routing based on the endpoint ex:here all the request
         res.statusCode = 403;
         res.end('PUT operation not supported on /campsites');
     })
-    .delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+    .delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {//#2
         Campsite.deleteMany()
         .then(response => {
             res.statusCode=200;
@@ -128,26 +128,27 @@ campsiteRouter.route('/:campsiteId')
         res.statusCode = 403;
         res.end(`PUT operation not supported on /campsites/${req.params.campsiteId}/comments`);
     })
-    .delete(authenticate.verifyUser, (req, res, next) => {
+    .delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
         Campsite.findById(req.params.campsiteId)
         .then(campsite => {
             if(campsite){
-            //if the campsite document with the id exists, than deleting each comment in the comments field
-            for(let i=campsite.comments.length-1;i>=0;i--){
-                campsite.comments.id(campsite.comments[i]._id).remove();
-            }
-            campsite.save()
-            .then(campsite => {
-                res.statusCode=200;
-                res.setHeader('Content-Type','application/json');
-                res.json(campsite);
-            })
-            .catch(err=>next(err)); 
+                for(let i=campsite.comments.length-1;i>=0;i--){  
+                    campsite.comments.id(campsite.comments[i]._id).remove();    
+                }
+                campsite.save()
+                .then(campsite => {
+                    res.statusCode=200;
+                    res.setHeader('Content-Type','application/json');
+                    res.json(campsite);
+                })
+                .catch(err=>next(err)); 
+                
             }else{
                 err = new Error(`Campsite ${req.params.campsiteId} does not exist`);
                 err.status=403;
                 return next(err);
             }
+            
         })
         .catch(err=>next(err));  
     });
@@ -182,7 +183,7 @@ campsiteRouter.route('/:campsiteId')
        res.statusCode = 403;
        res.end(`POST operation not supported on /campsites/${req.params.campsiteId}/comments/${req.params.commentsId}`);
     })
-    .put(authenticate.verifyUser, (req, res) => {
+    .put(authenticate.verifyUser, (req, res, next) => {
         Campsite.findById(req.params.campsiteId)
         .then(campsite => {
             if(campsite && campsite.comments.id(req.params.commentsId)){
@@ -227,19 +228,29 @@ campsiteRouter.route('/:campsiteId')
         .catch(err=>next(err));  
        
     })
-    .delete(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+    .delete(authenticate.verifyUser, (req, res, next) => {//#4
         Campsite.findById(req.params.campsiteId)
         .then(campsite => {
-            if(campsite && campsite.comments.id(req.params.commentsId)){
-            //removing the comment with the commentId
-            campsite.comments.id(req.params.commentsId).remove();
-            campsite.save()
-            .then(campsite=>{
-                res.statusCode=200;
-                res.setHeader('Content-Type','application/json');
-                res.json(campsite);
-            })
-            .catch(err=>next(err));  
+            if(campsite && campsite.comments.id(req.params.commentsId))
+            {
+            const id2 = req.user.id;
+            const id1 = campsite.comments.id(req.params.commentsId).author._id;
+            if(id1.equals(id2)){
+                //removing the comment with the commentId
+                campsite.comments.id(req.params.commentsId).remove();
+                campsite.save()
+                .then(campsite=>{
+                    res.statusCode=200;
+                    res.setHeader('Content-Type','application/json');
+                    res.json(campsite);
+                })
+                .catch(err=>next(err));  
+            }
+            else{
+                err = new Error(`Cannot delete this comment`);
+                err.status=403;
+                return next(err);
+            }
             }
             else if(!campsite){
                 err = new Error(`Campsite ${req.params.campsiteId} does not exist`);
@@ -251,6 +262,7 @@ campsiteRouter.route('/:campsiteId')
                 err.status=403;
                 return next(err);
             }
+            
         })
         .catch(err=>next(err));  
     });
