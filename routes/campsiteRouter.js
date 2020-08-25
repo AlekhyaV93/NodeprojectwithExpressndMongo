@@ -12,6 +12,7 @@ campsiteRouter.route('/')//routing based on the endpoint ex:here all the request
 //configuring response based on the type of the HTTP request 
     .get((req, res, next) => {
         Campsite.find()
+        .populate('comments.author')
         .then(campsites => {
             res.statusCode=200;
             res.setHeader('Content-Type','application/json');
@@ -49,6 +50,7 @@ campsiteRouter.route('/')//routing based on the endpoint ex:here all the request
 campsiteRouter.route('/:campsiteId')
     .get((req, res, next) => {
         Campsite.findById(req.params.campsiteId)
+        .populate('comments.author')
         .then(campsites => {
             res.statusCode=200;
             res.setHeader('Content-Type','application/json');
@@ -86,6 +88,7 @@ campsiteRouter.route('/:campsiteId')
     campsiteRouter.route('/:campsiteId/comments')
     .get((req, res, next) => {
         Campsite.findById(req.params.campsiteId)
+        .populate('comments.author')
         .then(campsite => {
             if(campsite){
             res.statusCode=200;
@@ -104,6 +107,7 @@ campsiteRouter.route('/:campsiteId')
         Campsite.findById(req.params.campsiteId)
         .then(campsite => {
             if(campsite){
+            req.body.author=req.user._id;
             campsite.comments.push(req.body);//If a campsite document with the Id exists, the comments are pushed to the comments field
             campsite.save()//saving the changes after manipulating the document
             .then(campsite => {
@@ -153,6 +157,7 @@ campsiteRouter.route('/:campsiteId')
     campsiteRouter.route('/:campsiteId/comments/:commentsId')
     .get((req, res, next) => {
         Campsite.findById(req.params.campsiteId)
+        .populate('comments.author')
         .then(campsite => {
             //If the campsite with the Id contains a comment with the Id we are sending it in the response
             if(campsite && campsite.comments.id(req.params.commentsId)){
