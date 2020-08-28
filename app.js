@@ -12,20 +12,10 @@ var usersRouter = require('./routes/users');
 var campsiteRouter = require('./routes/campsiteRouter');
 var promotionsRouter = require('./routes/promotionRouter');
 var partnersRouter = require('./routes/partnerRouter');
-var uploadRouter = require('./routes/uploadRouter');
 
 const url = config.mongoURL;//setting the connection string 
 
 var app = express();
-
-app.all('*',(req,res,next)=>{
-  if(req.secure){
-    return next();
-  }else{
-    console.log(`Redirecting the request to https://${req.hostname}:${app.get('securePort')}${req.url}`);
-    res.redirect(301,`https://${req.hostname}:${app.get('securePort')}${req.url}`);
-  }
-})
 
 //connecting to mongoDb by passing the connection string
 const connect = mongoose.connect(url, {
@@ -48,7 +38,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 //app.use(cookieParser('12345-67890-09876-54321'));
 
-app.use(passport.initialize());//using passport middleware
+app.use(passport.initialize());
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
@@ -57,7 +47,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/campsites', campsiteRouter);
 app.use('/promotions', promotionsRouter);
 app.use('/partners', partnersRouter);
-app.use('/imageUpload', uploadRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
