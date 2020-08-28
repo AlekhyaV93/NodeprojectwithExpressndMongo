@@ -21,7 +21,7 @@ const imageFileFilter = (req, file, cb) => {
     cb(null, true);
 }
 
-const upload = multer({ storage: storage }, { fileFilter: imageFileFilter });//using above configurations in multer
+const upload = multer({ storage: storage }, { fileFilter: imageFileFilter });
 
 const uploadRouter = express.Router();
 
@@ -33,8 +33,8 @@ uploadRouter.route('/')
 })
 .post(authenticate.verifyUser, authenticate.verifyAdmin, upload.single('imageFile'), (req, res) => {
     res.statusCode = 200;
-    res.setHeader('Content-Type', 'application/json');
-    res.json(req.file);//sending the uploaded file as response
+    res.setHeader('Content-Type','application/json');
+    res.json(req.file);
 })
 .put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res) => {
     res.statusCode = 403;

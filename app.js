@@ -18,12 +18,12 @@ const url = config.mongoURL;//setting the connection string
 
 var app = express();
 
-app.all('*', (req, res, next) => {
-  if (req.secure) {
+app.all('*',(req,res,next)=>{
+  if(req.secure){
     return next();
-  } else {
+  }else{
     console.log(`Redirecting the request to https://${req.hostname}:${app.get('securePort')}${req.url}`);
-    res.redirect(301, `https://${req.hostname}:${app.get('securePort')}${req.url}`);
+    res.redirect(301,`https://${req.hostname}:${app.get('securePort')}${req.url}`);
   }
 })
 
@@ -35,7 +35,7 @@ const connect = mongoose.connect(url, {
   useUnifiedTopology: true
 });
 
-connect.then(console.log('Connected to the server'), err => {
+connect.then(console.log('Connected to the server'),err=>{
   console.log(err);
 })
 
