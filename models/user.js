@@ -11,6 +11,7 @@ const userSchema = new Schema({
     type: String,
         default: ''
     },
+    facebookId: String, //since we used only one property we need not mention the type prop name explicitly
     admin:{
         type:Boolean,
         default:false

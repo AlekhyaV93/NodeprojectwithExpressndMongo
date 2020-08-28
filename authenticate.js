@@ -1,8 +1,10 @@
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const JwtStrategy = require('passport-jwt').Strategy;
+const FacebookTokenStrategy = require('passport-facebook-token');
 const ExtractJwt = require('passport-jwt').ExtractJwt; //The module contains some helper methods to extract jwt from request(either from header, body or url)
 const jwt = require('jsonwebtoken');//used to create, sign, verify Tokens
+
 
 const User = require('./models/user');
 const config = require('./config.js');
@@ -14,6 +16,7 @@ passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
 exports.getToken = user => {
+    console.log(user);
     return jwt.sign(user, config.secretKey, { expiresIn: 3600 })//generating a token using the user._id, secret key and setting it to expire in one hour
 }
 
@@ -40,6 +43,39 @@ exports.jwtPassport = passport.use(
     )
 );
 
+//using facebook strategy
+exports.facebookPassport = passport.use(
+    new FacebookTokenStrategy(
+        {
+            clientID: config.facebook.clientId,
+            clientSecret: config.facebook.clientSecret
+        }, 
+        (accessToken, refreshToken, profile, done) => {
+            User.findOne({facebookId: profile.id}, (err, user) => {
+                if (err) {
+                    return done(err, false);
+                }
+                if (!err && user) {
+                    return done(null, user);
+                } else {
+                    user = new User({ username: profile.displayName });
+                    user.facebookId = profile.id;
+                    user.firstname = profile.name.givenName;
+                    user.lastname = profile.name.familyName;
+                    user.save((err, user) => {
+                        if (err) {
+                            return done(err, false);
+                        } else {
+
+                            return done(null, user);
+                        }
+                    });
+                }
+            });
+        }
+    )
+);
+
 exports.verifyUser = passport.authenticate('jwt', { session: false });//When a user is authenticated based on above strategy, Passport will load a user property to the req object
 //verifying if the user is an admin
 exports.verifyAdmin = (req, res, next) => {
@@ -52,3 +88,5 @@ exports.verifyAdmin = (req, res, next) => {
         return next(err)
     }
 }
+
+

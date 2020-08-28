@@ -74,4 +74,15 @@ router.get('/logout',cors.corsWithOptions, (req, res, next) => {
   }
 })
 
+//second middleware to authenticate using fb by plugging in the facebook strategy we configured in authenticate.js
+router.get('/facebook/token', passport.authenticate('facebook-token', {session: false}), (req, res) => {
+  if (req.user) {
+      //console.log(req.user);
+      const token = authenticate.getToken({_id: req.user._id});
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json');
+      res.json({success: true, token: token, status: 'You are successfully logged in!'});
+  }
+});
+
 module.exports = router;
