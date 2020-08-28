@@ -41,7 +41,7 @@ const options = {
   key: fs.readFileSync(__dirname+'/server.key'),
   cert: fs.readFileSync(__dirname+'/server.cert')
 }
-var secureServer = https.createServer(options,app);
+var secureServer = https.createServer(options, app);
 /**
  * Listen on provided port, on all network interfaces.
  */

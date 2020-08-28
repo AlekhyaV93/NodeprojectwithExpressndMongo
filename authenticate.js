@@ -9,26 +9,25 @@ const config = require('./config.js');
 const { NotExtended } = require('http-errors');
 const { response } = require('express');
 
-
-
-exports.local = passport.use(new LocalStrategy(User.authenticate()));
-passport.serializeUser(User.serializeUser()); 
-passport.deserializeUser(User.deserializeUser());   
+exports.local = passport.use(new LocalStrategy(User.authenticate()));//passport using a new instance of local strategy
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
 
 exports.getToken = user => {
-    return jwt.sign(user, config.secretKey, {expiresIn: 3600})
+    return jwt.sign(user, config.secretKey, { expiresIn: 3600 })//generating a token using the user._id, secret key and setting it to expire in one hour
 }
 
 const opts = {};
-opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
+opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();//accepting the token from the request header for authentication, once user sign up
 opts.secretOrKey = config.secretKey;
 
+////passport using a new instance of jwt strategy
 exports.jwtPassport = passport.use(
     new JwtStrategy(
         opts,
         (jwt_payload, done) => {
             console.log('JWT payload:', jwt_payload);
-            User.findOne({_id: jwt_payload._id}, (err, user) => {
+            User.findOne({ _id: jwt_payload._id }, (err, user) => {
                 if (err) {
                     return done(err, false);
                 } else if (user) {
@@ -41,14 +40,15 @@ exports.jwtPassport = passport.use(
     )
 );
 
-exports.verifyUser = passport.authenticate('jwt', {session: false});//When a user is authenticated in this function, Passport will load a user property to the req object
-exports.verifyAdmin = (req,res,next) => {
-    if(req.user.admin){
+exports.verifyUser = passport.authenticate('jwt', { session: false });//When a user is authenticated based on above strategy, Passport will load a user property to the req object
+//verifying if the user is an admin
+exports.verifyAdmin = (req, res, next) => {
+    if (req.user.admin) {
         return next();
     }
-    else{
+    else {
         const err = new Error("You are not authorized to perform this operation");
-        res.statusCode=403;
+        res.statusCode = 403;
         return next(err)
     }
 }
