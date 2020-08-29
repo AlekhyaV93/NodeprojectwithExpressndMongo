@@ -139,12 +139,12 @@ campsiteRouter.route('/:campsiteId/comments')
                     campsite.comments.id(campsite.comments[i]._id).remove();
                 }
                 campsite.save()
-                    .then(campsite => {
-                        res.statusCode = 200;
-                        res.setHeader('Content-Type', 'application/json');
-                        res.json(campsite);
-                    })
-                    .catch(err => next(err));
+                .then(campsite => {
+                    res.statusCode = 200;
+                    res.setHeader('Content-Type', 'application/json');
+                    res.json(campsite);
+                })
+                .catch(err => next(err));
 
             } else {
                 err = new Error(`Campsite ${req.params.campsiteId} does not exist`);

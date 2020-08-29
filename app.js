@@ -13,6 +13,7 @@ var campsiteRouter = require('./routes/campsiteRouter');
 var promotionsRouter = require('./routes/promotionRouter');
 var partnersRouter = require('./routes/partnerRouter');
 var uploadRouter = require('./routes/uploadRouter');
+var favoriteRouter = require('./routes/favoriteRouter');
 
 const url = config.mongoURL;//setting the connection string 
 
@@ -58,6 +59,7 @@ app.use('/campsites', campsiteRouter);
 app.use('/promotions', promotionsRouter);
 app.use('/partners', partnersRouter);
 app.use('/imageUpload', uploadRouter);
+app.use('/favorite', favoriteRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
